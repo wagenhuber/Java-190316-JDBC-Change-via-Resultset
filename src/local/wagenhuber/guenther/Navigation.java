@@ -37,8 +37,8 @@ public class Navigation {
             //Verbindung zur DB herstellen:
             con = DriverManager.getConnection(url, user, password);
 
-            stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rs = stmt.executeQuery("select buecher_id, titel from buecher order by buecher_id");
+            stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            rs = stmt.executeQuery("select buecher_id, titel, verkaufspreis, einkaufspreis, erscheinungsjahr, verlage_verlage_id from buecher order by buecher_id");
 
             if (rs.last()) {
                 System.out.println("Anzahl Zeilen: " + rs.getRow());
@@ -46,9 +46,16 @@ public class Navigation {
                 System.out.println("Ergebnismenge leer");
                 return;
             }
-            rs.beforeFirst();
+            rs.first();
+            System.out.println();
+            System.out.println(rs.getString(1) + " " + rs.getString(2) + " " + rs.getString(3) + " " + rs.getString(4));
+            System.out.println();
+
+
 
             System.out.println(" IHre Eingabe bitte: " + "next, previous, first, last oder quit");
+
+
 
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
@@ -69,6 +76,16 @@ public class Navigation {
                         System.out.println(rs.getRow() + " " + rs.getString(1) + " " + rs.getString(2));
                 } else if (line.equals("quit")) {
                     break;
+                    //Einfügen eines Datensatzes in Datenbank
+                    //Abfrage ob Eingabe mit dem String "Insert" beginnt -> wenn ja, dann nachfolgende Zeichen als Titel für Buch in DB einfügen
+                } else if (line.startsWith("insert ")) {
+                    //Einrücken bis der Titel des Buches als String angegeben wird mittels sql-funktion "substring"
+                    String titel = line.substring(7).trim();
+                    rs.moveToInsertRow();
+                    rs.updateString(2, titel);
+                    rs.insertRow();
+                    rs.moveToCurrentRow();
+                    System.out.println("Insert ok");
                 }
             }
         } catch (IOException e) {
